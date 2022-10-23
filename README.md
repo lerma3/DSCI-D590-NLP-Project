@@ -7,7 +7,7 @@
 In 2007, Barak Obama utilized social media to run for office and that was a game changer. Until Obama utilized MySpace.com, political campaigns were contained within the television, radio, and print media spaces. Political ads were systematic, they exercised message discipline and message control (Perlmutter, 1999; Stromer-Galley, 2000). As political parties have become more polarized, their ideological underpinnings have manifested themselves in the ads. The advent of microtargeting that social media has made easy for campaigns allows campaigns to disseminate different messages to different groups. Consequently, campaign messaging has transformed from a collective to an individual message. 
 As the 2022 mid-term elections loom, what do campaign ads look like? This project utilizes campaign ads on Meta (Facebook, Instagram, Whatsapp) platforms from candidates running for the U.S. Senate in 2022. This project will unveil the varying messages disseminated by the platform using Natural Language Processing techniques. First, the campaign ads will apply keyword extraction to understand what key phrases appear most often in the ads. Also, the program will identify the sentiment of ads to obtain the average tone used. By using keyword extraction and sentiment analysis, this project will provide a robust understanding of the look and feel of social media campaign ads today through identifying the most common key phrases and the degree of negative campaigning.
 
-###Keywords
+### Keywords 
 social media, campaign ads, sentiment analysis, keyword extraction
 
 ### Usefulness
