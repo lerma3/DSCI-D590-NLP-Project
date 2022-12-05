@@ -1,0 +1,61 @@
+<html>
+  <head>
+    <title>The Facebook Campaign</title>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<script type="text/javascript" src="{{ url_for('static', filename='js/nlp.js') }}
+	./js/nlp.js" ></script>
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/nlp.css') }}" />
+  </head>
+  <body>
+	<div class="header">
+		<div class='nav'>
+			<ul>
+			  <li><a href="default.asp">Home</a></li>
+			  <li><a href="news.asp">News</a></li>
+			  <li><a href="contact.asp">Contact</a></li>
+			  <li><a href="about.asp">About</a></li>
+			</ul> 
+		</div>
+		<h1>The Facebook Campaign: Revealing Politcians’ Hidden Ads</h1>
+
+		<div class='state'>
+			Pick a senatorial race:
+			<ul >
+			  <li><a href="default.asp">AL</a></li>
+			  <li><a href="news.asp">AK</a></li>
+			  <li><a href="contact.asp">CA</a></li>
+			  <li><a href="about.asp">IN</a></li>
+			</ul>
+		</div>
+	</div>
+	<div class='democrat'>
+		<h2>Democrat</h2>
+		<h3>All States</h3>
+		<h4>Wordcloud</h4>
+		<p class='wordcloud'>
+			<img src="{{ url_for('static', filename='img/wordcloud-test-dem.png') }}" alt="Democratic wordcloud" />
+		</p>
+		<h4>Sentiment Analysis</h4>	
+		<p class='sentiment' >		
+			<img src="{{ url_for('static', filename='img/sentiment-test-dem.png') }}" alt="Democratic sentiment analysis"  />	
+		</p>
+	</div>
+	<div class='republican'>
+		<h2>Republican</h2>
+		<h3>All States</h3>
+		<h4>Wordcloud</h4>
+		<p class='wordcloud'>
+			<img src="{{ url_for('static', filename='img/wordcloud-test-rep.png') }}" alt="Republican wordcloud"  />
+		</p>
+		<h4>Sentiment Analysis</h4>	
+		<p class='sentiment' >
+			<img src="{{ url_for('static', filename='img/sentiment-test-dem.png') }}" alt="Republican sentiment analysis" />
+		</p>
+	</div>
+	<div class='break'></div>
+	<div class='footer'>
+		Footer
+	</div>
+	
+  </body>
+</html>

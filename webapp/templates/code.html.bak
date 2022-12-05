@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+
+
+
+{% block body %}
+<h2>Data</h2>
+<ul>
+<li><a href="{{ url_for('static', filename='data/fbads_sentiments.zip') }}">Message Data & Sentiments</a></li>
+<li><a href="{{ url_for('static', filename='data/fb_ads_tfidf.zip') }}">TF-IDF Results</a></li>
+</ul>
+	<h2>Dependencies</h2>
+	<code> 
+#data handling<br>
+import os, zipfile<br>
+import glob<br>
+import pandas as pd<br>
+import numpy as np<br>
+<br>
+#text normalization<br>
+import nltk<br>
+import text_normalizer as tn<br>
+<br>
+#wordcloud<br>
+import matplotlib.pyplot as plt<br>
+import matplotlib as mpl<br>
+from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator<br>
+from PIL import Image<br>
+from sklearn.feature_extraction.text import TfidfVectorizer<br>
+<br>
+#sentiment analysis<br>
+import textblob<br>
+from nltk.sentiment.vader import SentimentIntensityAnalyzer<br>
+	</code>
+	<h2>Data Preperation</h2>
+	<h3>Data assembly</h3>
+	<code>
+#join all csvs in the dem folder<br>
+party='Democrat'<br>
+all_files = glob.glob(os.path.join(path,party, "*.csv"))<br>
+dem = pd.concat((pd.read_csv(f) for f in all_files), ignore_index=True)<br>
+dem['party']="D"<br>
+<br>
+#join all csvs in the rep folder<br>
+party='Republican'<br>
+all_files = glob.glob(os.path.join(path,party, "*.csv"))<br>
+rep = pd.concat((pd.read_csv(f) for f in all_files), ignore_index=True)<br>
+rep['party']="R"<br>
+<br>
+#combine<br>
+df=dem.append(rep, ignore_index=True)<br>
+	</code>
+	<h3>Limit data to 2022, combine text columns, remove nulls</h3>
+	<code>
+df=df[(df['ad_creation_time']>='2022-01-01') | (df['ad_delivery_stop_time']>='2022-01-01')]<br>
+df[['ad_creative_bodies','ad_creative_link_titles','ad_creative_link_descriptions']] = df[['ad_creative_bodies','ad_creative_link_titles','ad_creative_link_descriptions']].fillna('')<br>
+df['text']=df['ad_creative_bodies']+' '+df['ad_creative_link_titles']+' '+df['ad_creative_link_descriptions']<br>
+df['text']=df['text'].str.strip()<br>
+df=df[df['text']!='']<br>
+	</code>
+	<h3>Normalize data</h3>
+	<code>
+stopword_list = nltk.corpus.stopwords.words('english')<br>
+stopword_list.append('senate')<br>
+<br>
+# normalize our corpus<br>
+norm_corpus = tn.normalize_corpus(corpus=df['text'], html_stripping=True, contraction_expansion=True, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  accented_char_removal=True, text_lower_case=True, text_lemmatization=True, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  text_stemming=False, special_char_removal=True, remove_digits=True,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  stopword_removal=True, stopwords=stopword_list)<br>
+df['normtext'] = norm_corpus<br>
+	</code>
+	<h2>Wordclouds</h2>
+	<h3>Feature extraction & TF-IDF model</h3>
+	<code>
+#get list of candidates: overall and by party<br>
+can=df.page_name.unique()<br>
+dem = df[df['party']=="D"]<br>
+rep = df[df['party']=="R"]<br>
+dem_can=dem.page_name.unique()<br>
+rep_can=rep.page_name.unique()<br>
+<br>
+corpus = [' '.join(df[(df['page_name']==candidate)].normtext.tolist()) for candidate in can]<br>
+# build BOW features on train articles<br>
+tv = TfidfVectorizer(use_idf=True, min_df=0.0, max_df=1.0)<br>
+tv_corp = tv.fit_transform(corpus)<br>
+<br>
+X = tv_corp.toarray()<br>
+<br>
+tf=pd.DataFrame(X, columns = tv.get_feature_names())<br>
+tf.index=can<br>
+	</code>
+	<h3>Wordcloud function</h3>
+	<code>
+def wordcloud(bow,can,party):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#bow = bag of words or tf-idf dataframe<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#can = candidate name<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#party = political party string (D or R)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# create a pandas Series of the most frequent 50 words<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;text=bow.loc[can].sort_values(ascending=False)[:50]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# create a dictionary <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;text2_dict=bow.loc[can].sort_values(ascending=False).to_dict()   <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# open the party image and use np.array to transform the file to an array<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if party=="D":<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cand_mask=np.array(Image.open(path+'/dem-donkey2.png'))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;color="blue"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cand_mask=np.array(Image.open(path+'/rep-elephant.png'))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;color="red"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# prep image to insert wordcloud<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cand_mask=np.where(cand_mask > 3, 255, cand_mask)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#create and generate our wordcloud object<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;wordcloud = WordCloud(background_color='white',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;	  contour_color=color,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  mask=cand_mask, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; max_words=100,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  contour_width=4).generate_from_frequencies(text2_dict)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#plot<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;plt.imshow(wordcloud, interpolation='bilinear')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;plt.axis('off')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;plt.show()<br>
+	</code>
+<h2>Sentiment Analysis</h2>
+<h3>VADER function</h3>
+<code>
+def analyze_sentiment_vader_lexicon(corpus, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;threshold=0.1,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;verbose=False):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;analyze&nbsp;the&nbsp;sentiment&nbsp;for&nbsp;review<br>
+&nbsp;&nbsp;&nbsp;&nbsp;analyzer&nbsp;=&nbsp;SentimentIntensityAnalyzer()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;scores&nbsp;=&nbsp;analyzer.polarity_scores(corpus)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;get&nbsp;aggregate&nbsp;scores&nbsp;and&nbsp;final&nbsp;sentiment<br>
+&nbsp;&nbsp;&nbsp;&nbsp;agg_score&nbsp;=&nbsp;scores['compound']<br>
+&nbsp;&nbsp;&nbsp;&nbsp;final_sentiment&nbsp;=&nbsp;'positive'&nbsp;if&nbsp;agg_score&nbsp;>=&nbsp;threshold\<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else&nbsp;'negative'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;verbose:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;display&nbsp;detailed&nbsp;sentiment&nbsp;statistics<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;positive&nbsp;=&nbsp;str(round(scores['pos'],&nbsp;2)*100)+'%'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;final&nbsp;=&nbsp;round(agg_score,&nbsp;2)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;negative&nbsp;=&nbsp;str(round(scores['neg'],&nbsp;2)*100)+'%'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;neutral&nbsp;=&nbsp;str(round(scores['neu'],&nbsp;2)*100)+'%'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sentiment_frame&nbsp;=&nbsp;pd.DataFrame([[final_sentiment,&nbsp;final,&nbsp;positive,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;negative,&nbsp;neutral]],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;columns=pd.MultiIndex(levels=[['SENTIMENT&nbsp;STATS:'],&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;['Predicted&nbsp;Sentiment',&nbsp;'Polarity&nbsp;Score',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'Positive',&nbsp;'Negative',&nbsp;'Neutral']],&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;codes=[[0,0,0,0,0],[0,1,2,3,4]]))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print(sentiment_frame)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;final_sentiment&nbsp;&nbsp;<br>
+</code>
+<h3>Perform sentiment analysis</h3>
+<code>
+df['sentiment']=df['normtext'].apply(analyze_sentiment_vader_lexicon)<br>
+</code>
+<h3>Sentiment pie charts</h3>
+<code>
+def sentiment_chart(df,can):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;#df = data frame<br>
+&nbsp;&nbsp;&nbsp;&nbsp;#can = candidate name<br>
+&nbsp;&nbsp;&nbsp;&nbsp;temp=df[df['page_name']==can]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;series=temp[['sentiment']]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;label=['Negative',&nbsp;'Positive']<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;len(series['sentiment'].unique().tolist())==1:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;label=series['sentiment'].unique().tolist()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;fig1,&nbsp;ax1&nbsp;=&nbsp;plt.subplots()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ax1.pie(series.value_counts().sort_index(ascending=True),&nbsp;autopct='%1.0f%%',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;startangle=90,&nbsp;labels=label)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ax1.axis('equal')&nbsp;&nbsp;#&nbsp;Equal&nbsp;aspect&nbsp;ratio&nbsp;ensures&nbsp;that&nbsp;pie&nbsp;is&nbsp;drawn&nbsp;as&nbsp;a&nbsp;circle.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;plt.suptitle('Ad&nbsp;Sentiment&nbsp;Classification',&nbsp;y=1.05,&nbsp;fontsize=18)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;plt.title(can,&nbsp;fontsize=10)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;plt.ylabel('')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;plt.show()<br>
+</code>
+{% endblock %}

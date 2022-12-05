@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+
+
+{% block body %}
+	<h2>{{state_full}}</h2>
+	<div class='democrat'>
+		<h3>Democrat: {{dem_can}}</h3>
+		{% if dem_can in no_ads %}
+			<h4>Candidate did not place ads on the Meta platform. No results available.</h4>
+		{% else %}
+			<h4>Wordcloud</h4>
+			<p class='wordcloud'>
+				<img src="{{ url_for('static', filename='img/wordcloud/D/'+dem_can+'.png') }}" alt="{{dem_can}} wordcloud" />
+			</p>
+			<h4>Sentiment Analysis</h4>	
+			<p class='sentiment' >		
+				<img src="{{ url_for('static', filename='img/sentiment/D/'+dem_can+'.png') }}" alt="{{dem_can}} sentiment analysis"  />	
+			</p>
+		{% endif %}
+	</div>
+	<div class='republican'>
+		<h3>Republican: {{rep_can2}}</h3>
+		{% if rep_can in no_ads %}
+			<h4>Candidate did not place ads on the Meta platform. No results available.</h4>
+		{% else %}
+			<h4>Wordcloud</h4>
+			<p class='wordcloud'>
+				<img src="{{ url_for('static', filename='img/wordcloud/R/'+rep_can+'.png') }}" alt="{{rep_can}} wordcloud"  />
+			</p>
+			<h4>Sentiment Analysis</h4>	
+			<p class='sentiment' >
+				<img src="{{ url_for('static', filename='img/sentiment/R/'+rep_can+'.png') }}" alt="{{rep_can}} sentiment analysis" />
+			</p>
+		{% endif %}
+	</div>
+{% endblock %}

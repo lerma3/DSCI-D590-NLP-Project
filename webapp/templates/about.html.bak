@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+
+
+{% block body %}
+<div class="text">
+<h2>About</h2>
+<p class="about">As political parties have become more polarized, their ideological underpinnings have manifested
+themselves in the ads. The advent of microtargeting in social media has made it easy for campaigns to
+disseminate different messages to different groups. Consequently, campaign messaging has
+transformed from a collective to an individual message.
+This app processes nearly 41,000 ads to show you the most frequent keywords and sentiment for candidates running
+for Senate in 2022. This app makes it easy to know what candidates are telling you and what tone they
+are using to convey their messages.</p>
+
+<h2>Data and Methods</h2>
+<p class="about">The data were derived from <a href="https://www.facebook.com/ads/library" target="_blank">Meta’s ad library</a>. The data were collected over multiple days in 
+October and November 2022. We limited the data to the 2022 calendar year which included about 41,000 ads. Next, we normalized the ad text 
+by removing stop words, special characters, and numbers, stripped HTML tags, expanded contractions, made all text lower case, and lemmatized the text. The normalization
+was performed using <a href="https://github.com/dipanjanS/text-analytics-with-python/tree/master/New-Second-Edition" target="_blank">Sarkar's text 
+normalization script.</a>
+<h3>Wordcloud</h3>
+<p class="about">Using the normalized text, we applied <a href="https://www.learndatasci.com/glossary/tf-idf-term-frequency-inverse-document-frequency/" target="_blank">
+term frequency–inverse document frequency (TF-IDF)</a>, a statistical natural language processing technique, that measures the importance of a word in a 
+larger body of text. We then plotted the importance of the 50 most important words in a candidate's body of ads in a wordcloud with larger fonts indicating 
+a greater level of importance. The wordclouds were created using the <a href="https://pypi.org/project/wordcloud/" target="_blank">wordcloud</a> package.</p>
+<h3>Sentiment Analysis</h3>
+<p class="about">Sentiment analysis was applied to the corpus of normalized ad text. The <a href="https://doi.org/10.1609/icwsm.v8i1.14550" target="_blank">
+Valence Aware Dictionary for sEntiment Reasoning (VADER)</a> algorithm was used to calculate the sentiments. The distribution of the sentiments was then plotted
+using <a href="https://matplotlib.org/" target="blank">Matplotlib</a>.
+</p>
+
+<p>
+This website was created as a final project for <a href="https://luddy.indiana.edu/academics/courses/class/iub-fall-2022-dsci-d590">Intro To NLP For Data Science</a>
+for the Fall 2022 semester. 
+</p>
+
+{% endblock %}

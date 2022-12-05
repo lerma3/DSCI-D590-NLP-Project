@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+
+
+{% block body %}
+	<h2>All States</h2>
+	<div class='democrat'>
+		<h3>Democrat</h3>
+		
+		<h4>Wordcloud</h4>
+		<p class='wordcloud'>
+			<img src="{{ url_for('static', filename='img/wordcloud-test-dem.png') }}" alt="Democratic wordcloud" />
+		</p>
+		<h4>Sentiment Analysis</h4>	
+		<p class='sentiment' >		
+			<img src="{{ url_for('static', filename='img/democratic_sentiment.png') }}" alt="Democratic sentiment analysis"  />	
+		</p>
+	</div>
+	<div class='republican'>
+		<h3>Republican</h3>
+		<h4>Wordcloud</h4>
+		<p class='wordcloud'>
+			<img src="{{ url_for('static', filename='img/wordcloud-test-rep.png') }}" alt="Republican wordcloud"  />
+		</p>
+		<h4>Sentiment Analysis</h4>	
+		<p class='sentiment' >
+			<img src="{{ url_for('static', filename='img/republican_sentiment.png') }}" alt="Republican sentiment analysis" />
+		</p>
+	</div>
+{% endblock %}

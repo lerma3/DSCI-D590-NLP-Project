@@ -1,0 +1,95 @@
+
+
+h1 {
+	text-align: center;
+}
+h2 {
+	text-align: center;
+}
+h3 {
+	text-align: center;
+}
+h4 {
+	text-align: center;
+}
+
+.democrat {
+	width: 50%; 
+	float: left; 
+	color: rgb(0, 68, 201);
+}
+
+.republican {
+	margin-left: 50%; 
+	color: #d91f2e;	
+}
+
+.wordcloud {
+	 text-align:center;
+	 display:block;
+}
+
+.sentiment {
+	 text-align:center;
+	 display:block;
+}
+.break	{
+	clear:both;
+}
+
+.nav ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #333;
+}
+
+.nav li {
+  float: left;
+}
+
+.nav li a {
+  display: block;
+  color: white;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+/* Change the link color to #111 (black) on hover */
+.nav li a:hover {
+  background-color: #111;
+}
+
+.state ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.state li {
+  float: left;
+}
+
+.state li a {
+  display: block;
+  color: black;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+/* Change the link color to #111 (black) on hover */
+.state li a:hover {
+  background-color: #D3D3D3;
+}
+
+p.about {
+  max-width: 750px;
+}
+
+#main {
+	margin:0 50px 50px 50px;
+}

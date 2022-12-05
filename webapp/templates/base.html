@@ -1,0 +1,40 @@
+<html>
+  <head>
+    <title>The Facebook Campaign</title>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/nlp.css') }}" />
+  </head>
+  <body>
+	<div class="header">
+		<div class='nav'>
+			<ul>
+			  <li><a href="/">Home</a></li>
+			  <li><a href="/about">About</a></li>
+			  <li><a href="/code">Code</a></li>
+			  <li><a href="/contact">Contact</a></li>
+			</ul> 
+		</div>
+		<h1>The Facebook Campaign: Revealing Politicians’ Hidden Ads</h1>
+
+		<div class='state'>
+			Pick a senatorial race:
+			<ul >
+			{% for state in states %}
+			  <li><a href="/?state={{state}}">{{state}}</a></li>
+			{% endfor %}
+			</ul>
+		</div>
+	</div>
+	<div id="main">
+	{% block body %}{% endblock %}
+	</div>
+
+	<div class='break'></div>
+	
+	<div class='footer'>
+		&#169; 2022 Kevin Fosnacht &amp; Rosemarie Lerma
+	</div>
+	
+  </body>
+</html>
